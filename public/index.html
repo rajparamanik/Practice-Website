@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Practice Website</title>
+</head>
+<body>
+    <!-- frontend building -->
+
+    <h1>Backend Learning Tracker</h1>
+    <input id ="noteInput" placeholder="Write a Concept you learned..."/>
+    <button onclick="addNote()">Save</button>
+    <ul id="notesList"></ul>
+
+
+    <!-- logic building -->
+    <script>
+        async function loadNotes(){
+            const res = await fetch('/api/notes');
+            const notes = await res.json();
+            document.getElementById('notesList').innerHTML = notes.map(n => `<li>${n.text}<li>`).join('');
+        }
+
+        async function addNote(){
+            const input = document.getElementById('noteInput');
+            await fetch('/api/notes',{
+                method : 'POST',
+                headers : {'Content-Type': 'application/json'},
+                body : JSON.stringify({text : input.value})
+            });
+            input.value = '';
+            loadNotes();
+        }
+
+        loadNotes();
+    </script>
+</body>
+</html>
