@@ -5,30 +5,54 @@
     <title>Practice Website</title>
 </head>
 <body>
-    <!-- frontend building -->
-
     <h1>Backend Learning Tracker</h1>
-    <input id ="noteInput" placeholder="Write a Concept you learned..."/>
+    <input id="noteInput" placeholder="Write a Concept you learned..." />
     <button onclick="addNote()">Save</button>
     <ul id="notesList"></ul>
 
-
-    <!-- logic building -->
     <script>
-        async function loadNotes(){
+        async function loadNotes() {
             const res = await fetch('/api/notes');
             const notes = await res.json();
-            document.getElementById('notesList').innerHTML = notes.map(n => `<li>${n.text}<li>`).join('');
+
+            document.getElementById('notesList').innerHTML = notes.map(n => `
+                <li>
+                    <span>${n.text}</span>
+                    <button onclick="editNote(${n.id}, '${n.text.replace(/'/g, "\\'")}')">Edit</button>
+                    <button onclick="deleteNote(${n.id})">Delete</button>
+                </li>
+            `).join('');
         }
 
-        async function addNote(){
+        async function addNote() {
             const input = document.getElementById('noteInput');
-            await fetch('/api/notes',{
-                method : 'POST',
-                headers : {'Content-Type': 'application/json'},
-                body : JSON.stringify({text : input.value})
+            if (!input.value.trim()) return; // Stops blank notes!
+
+            await fetch('/api/notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: input.value })
             });
             input.value = '';
+            loadNotes();
+        }
+
+        async function editNote(id, oldText) {
+            const newText = prompt('Edit your note:', oldText);
+            if (!newText || newText.trim() === oldText) return;
+
+            await fetch(`/api/notes/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: newText })
+            });
+            loadNotes();
+        }
+
+        async function deleteNote(id) {
+            await fetch(`/api/notes/${id}`, {
+                method: 'DELETE'
+            });
             loadNotes();
         }
 
